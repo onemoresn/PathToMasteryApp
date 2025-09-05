@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Path to Mastery</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body class="bg-gray-900 min-h-screen text-white">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-6 text-center">
+            Path to Mastery
+        </h1>
+        <div class="flex justify-center mb-6">
+            <img src="masteryLogo.png" alt="Mastery Logo" class="w-32 h-32 object-cover rounded-full shadow-lg border border-gray-700 bg-white">
+        </div>
+        <p class="text-center text-gray-300 mb-6 max-w-xl mx-auto">
+            The concept of this app is inspired by Malcolm Gladwell's book <em>Outliers</em>, which suggests that achieving mastery in a skill requires 1,000 hours of focused practice. Use this timer to track your journey toward 1,000 hours and level up your skills!
+        </p>
+        <form id="add-task-form" class="flex justify-center gap-2 mb-8">
+            <input type="text" id="task-input" class="px-4 py-2 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none" placeholder="Add a new task..." required>
+            <button type="submit" class="px-4 py-2 rounded bg-green-600 text-white font-semibold hover:bg-green-700 transition flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Add Task
+            </button>
+        </form>
+        <div id="task-list" class="space-y-6 max-w-xl mx-auto">
+            <!-- Tasks will appear here -->
+        </div>
+    </div>
+    <script>
+    let timers = {};
+    let intervals = {};
+        let stats = JSON.parse(localStorage.getItem('focusTimerStats') || '{}');
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function createTaskElement(taskName, taskId) {
+        const div = document.createElement('div');
+        div.className = "bg-gray-800 rounded-lg shadow p-6 flex flex-col gap-2";
+        div.innerHTML = `
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-list-check text-green-400 text-xl"></i>
+                <div class="mr-8">
+                    <span class="text-white text-lg font-semibold">${taskName}</span>
+                    <div class="text-green-400 text-sm mt-1">
+                        Level 1 (Noob)
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 mt-2">
+                <span id="timer-${taskId}" class="text-green-400 text-xl font-mono flex items-center gap-1">
+                    <i class="fa-solid fa-stopwatch"></i> 00:00
+                </span>
+                <button id="toggle-${taskId}" class="px-3 py-1 rounded bg-green-600 text-white font-semibold hover:bg-green-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-play"></i> Start
+                </button>
+                <button id="reset-${taskId}" class="px-3 py-1 rounded bg-gray-600 text-white font-semibold hover:bg-gray-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+                <button id="delete-${taskId}" class="px-3 py-1 rounded bg-red-600 text-white font-semibold hover:bg-red-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            </div>
+        `;
+        return div;
+    }
+        function getLevel(seconds) {
+            const hours = seconds / 3600;
+            if (hours >= 1000) return 99;
+            return Math.min(99, Math.floor(hours / (1000/98)) + 1);
+        }
+        function getRank(level) {
+            if (level <= 10) return 'Noob';
+            if (level <= 20) return 'Beginner';
+            if (level <= 40) return 'Intermediate';
+            if (level <= 60) return 'Advanced';
+            if (level <= 80) return 'Expert';
+            return 'Master';
+        }
+
+    function addTask(taskName, taskId = null, seconds = 0) {
+        // Use provided taskId or generate a new one
+        if (!taskId) {
+            taskId = Date.now().toString();
+            stats[taskId] = { name: taskName, seconds: 0 };
+            localStorage.setItem('focusTimerStats', JSON.stringify(stats));
+        }
+        timers[taskId] = seconds;
+        const taskEl = createTaskElement(taskName, taskId);
+        document.getElementById('task-list').appendChild(taskEl);
+
+        document.getElementById(`toggle-${taskId}`).onclick = function() {
+            if (intervals[taskId]) {
+                clearInterval(intervals[taskId]);
+                intervals[taskId] = null;
+                this.innerHTML = `<i class='fa-solid fa-play'></i> Start`;
+            } else {
+                intervals[taskId] = setInterval(() => {
+                    timers[taskId]++;
+                    stats[taskId].seconds = timers[taskId];
+                    localStorage.setItem('focusTimerStats', JSON.stringify(stats));
+                    document.getElementById(`timer-${taskId}`).innerHTML = `<i class='fa-solid fa-stopwatch'></i> ${formatTime(timers[taskId])}`;
+                }, 1000);
+                this.innerHTML = `<i class='fa-solid fa-pause'></i> Pause`;
+            }
+        };
+        document.getElementById(`reset-${taskId}`).onclick = function() {
+            timers[taskId] = 0;
+            stats[taskId].seconds = 0;
+            localStorage.setItem('focusTimerStats', JSON.stringify(stats));
+            document.getElementById(`timer-${taskId}`).innerHTML = `<i class='fa-solid fa-stopwatch'></i> 00:00`;
+            if (intervals[taskId]) {
+                clearInterval(intervals[taskId]);
+                intervals[taskId] = null;
+                document.getElementById(`toggle-${taskId}`).innerHTML = `<i class='fa-solid fa-play'></i> Start`;
+            }
+        };
+        document.getElementById(`delete-${taskId}`).onclick = function() {
+            if (intervals[taskId]) {
+                clearInterval(intervals[taskId]);
+                intervals[taskId] = null;
+            }
+            const taskCard = document.getElementById(`delete-${taskId}`).parentElement.parentElement;
+            if (taskCard && taskCard.parentElement) {
+                taskCard.parentElement.removeChild(taskCard);
+            }
+            delete timers[taskId];
+            delete intervals[taskId];
+            delete stats[taskId];
+            localStorage.setItem('focusTimerStats', JSON.stringify(stats));
+        };
+    }
+
+    document.getElementById('add-task-form').onsubmit = function(e) {
+        e.preventDefault();
+        const input = document.getElementById('task-input');
+        if (input.value.trim()) {
+            addTask(input.value.trim());
+            input.value = '';
+        }
+    };
+    // Load tasks from stats on page load
+    window.onload = function() {
+        Object.keys(stats).forEach(taskId => {
+            addTask(stats[taskId].name, taskId, stats[taskId].seconds);
+        });
+    };
+    </script>
+            <a href="stats.html" class="block mt-8 text-center text-green-400 hover:underline flex items-center justify-center gap-2">
+                <i class="fa-solid fa-chart-column"></i> View Stats & Charts
+            </a>
+</body>
+</html>
