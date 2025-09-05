@@ -63,7 +63,7 @@
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
                 <button id="delete-${taskId}" class="px-3 py-1 rounded bg-red-600 text-white font-semibold hover:bg-red-700 transition flex items-center gap-2">
-                    <i class="fa-solid fa-trash"></i> Delete
+                    <i class="fa-solid fa-trash"></i>
                 </button>
             </div>
         `;
@@ -76,11 +76,15 @@
         }
         function getRank(level) {
             if (level <= 10) return 'Noob';
-            if (level <= 20) return 'Beginner';
-            if (level <= 40) return 'Intermediate';
+            if (level <= 20) return 'Rookie';
+            if (level <= 30) return 'Apprentice';
+            if (level <= 40) return 'Skilled';
+            if (level <= 50) return 'Adept';
             if (level <= 60) return 'Advanced';
+            if (level <= 70) return 'Proficient';
             if (level <= 80) return 'Expert';
-            return 'Master';
+            if (level <= 90) return 'Master'
+            return 'Legendary';
         }
 
     function addTask(taskName, taskId = null, seconds = 0) {
