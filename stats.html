@@ -23,13 +23,17 @@
         return Math.min(99, Math.floor(hours / (1000/98)) + 1);
     }
     function getRank(level) {
-        if (level <= 10) return 'Noob';
-        if (level <= 20) return 'Beginner';
-        if (level <= 40) return 'Intermediate';
-        if (level <= 60) return 'Advanced';
-        if (level <= 80) return 'Expert';
-        return 'Master';
-    }
+            if (level <= 10) return 'Noob';
+            if (level <= 20) return 'Rookie';
+            if (level <= 30) return 'Apprentice';
+            if (level <= 40) return 'Skilled';
+            if (level <= 50) return 'Adept';
+            if (level <= 60) return 'Advanced';
+            if (level <= 70) return 'Proficient';
+            if (level <= 80) return 'Expert';
+            if (level <= 90) return 'Master'
+            return 'Legendary';
+        }
     function getProgressBar(seconds) {
         const percent = Math.min(100, (seconds / (1000*3600)) * 100);
         return `<div class='w-full bg-gray-700 rounded-full h-4'><div class='bg-green-400 h-4 rounded-full' style='width:${percent}%;'></div></div>`;
